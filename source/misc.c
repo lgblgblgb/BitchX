@@ -4644,7 +4644,7 @@ char *timestamp_str = get_string_var(TIMESTAMP_STRING_VAR);
                     s = cof_buffer[cparse_recurse] + s_pos;
                 }
  
-				strlcpy(s, new_str, COF_BUFFER_FREE(s));
+				strlcpy(s, subformat, COF_BUFFER_FREE(s));
 			    new_free(&new_str);
 			    while (*s) { s++; }
             }
