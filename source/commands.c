@@ -2737,8 +2737,9 @@ void add_addrs_proc_net(Virtuals **vhost_list, int norev)
     return;
 }
 
-#else /* ifdef IPV6 */
+#endif /* ifdef IPV6 */
 
+#if defined(SANE_SIOCGIFCONF)
 /* add_addrs_ioctl
  *
  * This uses the old SIOCGIFCONF ioctl to find local interface addresses.
@@ -2784,7 +2785,7 @@ void add_addrs_ioctl(Virtuals **vhost_list, int norev)
     close(s);
     return;
 }
-#endif /* ifdef IPV6 else */
+#endif /* if defined(SANE_SIOCGIFCONF) */
 
 /* get_local_addrs
  *
