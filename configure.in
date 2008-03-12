@@ -518,7 +518,7 @@ if test -z "$CYGWIN" -a -z "$EMXOS2" -a -z "$MINGWIN32"; then
     AC_CHECK_DECLARATION(tputs, tputs, [tputs( |        |)], termcap.h, TPUTS_DECLARED)
   fi
   if test x"$termcap" = x"1"; then
-    AC_CHECK_HEADER(termcap.h)
+    AC_CHECK_HEADERS(termcap.h)
     AC_CHECK_DECLARATION(tparm, tparm, [tparm( |        |)], termcap.h, TPARM_DECLARED)
     AC_CHECK_LIB(termcap, tparm, AC_DEFINE(HAVE_TPARM, 1, Define this if you have the tparm function in an included lib.),)
     AC_CHECK_DECLARATION(tputs, tputs, [tputs( |        |)], termcap.h, TPUTS_DECLARED)
