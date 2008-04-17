@@ -1,3 +1,16 @@
+[Changes 1.1s01]
+
+* Cleanups to allow compiling with new gcc releases [caf].
+
+* Fix configure check for termcap.h [caf].
+
+* Re-implement code to find available vhost addresses (CVE-2007-5839) [caf].
+
+* Fix test for GCC >= 2.7 - fixes compiling on S390 platform [caf].
+
+* Improve buffer handling in convert_output_format_raw (CVE-2007-4584) [caf].
+
+* Handle negative numerics correctly (CVE-2007-3360) [caf].
 
 [Changes 1.1-final]
 
