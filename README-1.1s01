@@ -1,0 +1,44 @@
+When BitchX 1.1-final was released, it was intended to be the last official
+release of the 1.x branch.  However, since that time work on the 2.x branch 
+has not been progressing as expected, and a handful of security issues have 
+cropped up, so it has become necessary to produce a new release of the 
+existing client.
+
+Hence Bitchx 1.1s01 ('s' for "security/stability", indicating that this is
+not a feature release).
+
+Fixed in this release are the security issues CVE-2007-3360, CVE-2007-4584
+and CVE-2007-5839.  Note that none of these issues can be exploited by 
+another user on IRC - the first two can only be exploited by an evil IRC 
+server, and the third by a local user.  In addition, there are some fixes 
+to allow BitchX to compile with the newer releases of gcc.
+
+In the coming months, the aim is to release a BitchX 1.2 branch, working
+off the existing codebase and bringing BitchX up to date with the changing
+environment since BitchX 1.1-final.  This is in parallel with work on the 
+longer term goal of building a BitchX 2.0.
+
+Current useful web sites are:
+
+    * Official BitchX site: http://www.bitchx.org
+    * BitchX Sourceforge project: http://sourceforge.net/projects/bitchx/
+
+Remember: Read the documentation (in particular, the FAQ found in this
+archive in doc/entire-faq.html) and use the forum on the Sourceforge
+project page BEFORE you come to IRC asking questions.  Consider the channel 
+your last resort - most people there come to IRC to chat and not play 
+"Technical Support".
+
+It's not to say that we won't help you.  We're just trying to enjoy our free
+time on IRC just like you.
+
+    - caf, Xavier
+    
+Our thanks and greetings to:
+
+panasync, nuke, |Rain|, powuh, Raistlin, fudd, void, sideshow, Blackjac,
+dovee, sabina, IRule, By-Tor, Venoma, novalogic, cres, einride, shattah, 
+hMz, lewsha, hayzus, dialtone, kreca, Snipi, KrOn, Tilt, mo-root, JohnnyM, 
+alexs, flewid, lara, Pezessed, Dragoon, Fizzle_B, keerf, defz, drogoh, 
+gauze, and sin.
+
