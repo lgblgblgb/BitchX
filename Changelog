@@ -1,5 +1,7 @@
 [Changes 1.1s01]
 
+* Fixed .cmsg crash reported by zimzum. (caf)
+
 * Cleanups to allow compiling with new gcc releases [caf].
 
 * Fix configure check for termcap.h [caf].
