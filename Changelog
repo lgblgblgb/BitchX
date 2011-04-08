@@ -1,5 +1,7 @@
 [Changes 1.1s01]
 
+* Sanity check color codes, fixes a potential crash. (caf)
+
 * Fixed .cmsg crash reported by zimzum. (caf)
 
 * Cleanups to allow compiling with new gcc releases [caf].

@@ -2922,16 +2922,27 @@ unsigned char *BX_strip_ansi (const unsigned char *str)
 }
 
 /*
- * Meant as an argument to strip_ansi(). This version will replace ANSI
- * color changes with terminal specific color changes.
+ * replace_color()
+ *
+ * Converts ^C color code pairs into terminal specific color changes.
+ *
+ * Code         foreground              background
+ * -----------------------------------------------------------
+ * 0 to 15      MIRC-style color codes  MIRC-style color codes
+ * 30 to 37     term colors 0 to 7      (invalid)
+ * 40 to 37     (invalid)               term colors 0 to 7
+ * 50 to 57     term colors 8 to 15     term colors 8 to 15
+ * 58           (invalid)               blinking on
+ *
+ * Setting both foreground and background to -1 sets the terminal
+ * to "normal", and setting both to -2 re-applies the last set colors.
  */
 char *replace_color(int fore, int back)
 {
-static 	char 	retbuf[512];
-	char 	*ptr = retbuf;
+	static 	char 	retbuf[512];
 	static	int	last_fore = -2, last_back = -2;
 
-	static int fore_conv[] = {
+	const static int fore_conv[] = {
 		15,  0,  4,  2,  1,  3,  5,  9,		/*  0-7  */
 		11, 10,  6, 14, 12, 13,  8,  7,		/*  8-15 */
 		15,  0,  0,  0,  0,  0,  0,  0, 	/* 16-23 */
@@ -2941,7 +2952,7 @@ static 	char 	retbuf[512];
 		 0,  0,  8,  9, 10, 11, 12, 13, 	/* 48-55 */
 		14, 15 					/* 56-57 */
 	};
-	static int back_conv[] = {
+	const static int back_conv[] = {
 		 7,  0,  4,  2,  1,  3,  5,  1,
 		 3,  2,  6,  6,  4,  5,  0,  0,
 		 7,  0,  0,  0,  0,  0,  0,  0,
@@ -2952,7 +2963,7 @@ static 	char 	retbuf[512];
 		14, 15 
 	};
 
-	*ptr = '\0';
+	retbuf[0] = '\0';
 
 	if (!get_int_var(COLOR_VAR))
 		return retbuf;
@@ -2974,7 +2985,7 @@ static 	char 	retbuf[512];
 
 	if (back == 58)
 		strcat(retbuf, current_term->TI_sgrstrs[TERM_SGR_BLINK_ON - 1]);
-	if (fore > -1)
+	if (fore > -1 && fore < 58)
 		strcat(retbuf, current_term->TI_forecolors[fore_conv[fore]]);
 	if (back > -1 && back < 58)
 		strcat(retbuf, current_term->TI_backcolors[back_conv[back]]);
