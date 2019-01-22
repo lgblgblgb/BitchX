@@ -322,44 +322,48 @@ int find_old_server(int old_server)
 	return -1;
 }
 
-static int advance_server(int i)
+static int advance_server(int server)
 {
-	int server = i;
-
 	/* We were waiting for this server to
 	 * connect and it didn't, so we will either
 	 * try again or move to the next server.
 	 */
 
-	if (server_list[i].retries >= get_int_var(MAX_SERVER_RECONNECT_VAR))
+	if (server_list[server].retries >= get_int_var(MAX_SERVER_RECONNECT_VAR))
 	{
-		server = next_server(i);
+		const int last_server = server;
+
+		server = next_server(server);
 		set_server_retries(server, 0);
 
-		if (server != i)
+		if (server != last_server)
 		{
 			/* We have a new server to try, so lets
 			 * move the variables over from the last one
 			 * and tell it to try to connect.
 			 */
 			set_server_reconnect(server, 1);
-			set_server_req_server(server, server_list[i].req_server);
-			set_server_old_server(server, server_list[i].old_server);
-			set_server_change_refnum(server, server_list[i].server_change_refnum);
+			set_server_req_server(server, server_list[last_server].req_server);
+			set_server_old_server(server, server_list[last_server].old_server);
+			set_server_change_refnum(server, server_list[last_server].server_change_refnum);
 #ifdef NON_BLOCKING_CONNECTS
-			server_list[server].from_server = server_list[i].from_server;
-			server_list[server].c_server = server_list[i].c_server;
+			server_list[server].from_server = server_list[last_server].from_server;
+			server_list[server].c_server = server_list[last_server].c_server;
 #endif
 			/* Reset the old server to the default state. */
-			server_list[i].retries = 0;
-			server_list[i].reconnect = 0;
-			server_list[i].old_server = -1;
-			server_list[i].req_server = -1;
+			server_list[last_server].retries = 0;
+			server_list[last_server].reconnect = 0;
+			server_list[last_server].old_server = -1;
+			server_list[last_server].req_server = -1;
 #ifdef NON_BLOCKING_CONNECTS
-			server_list[i].connect_wait = 0;
-			server_list[i].from_server = -1;
-			server_list[i].c_server = -1;
+			server_list[last_server].connect_wait = 0;
+			server_list[last_server].from_server = -1;
+			server_list[last_server].c_server = -1;
 #endif
+			/* If we have cycled back around to the originally requested
+			 * server, tell the user what's happening. */
+			if (server == server_list[server].req_server)
+				bitchsay("Servers exhausted. Restarting.");
 		}
 	}
 	server_list[server].retries++;
@@ -372,8 +376,6 @@ static int advance_server(int i)
 			put_it("%s", convert_output_format(fget_string_var(FORMAT_DISCONNECT_FSET), "%s %s", update_clock(GET_TIME), "No connection"));
 		return -1;
 	}
-	else if (server == server_list[i].req_server && server_list[server].retries > 1)
-		bitchsay("Servers exhausted. Restarting.");
 
 	return server;
 }
