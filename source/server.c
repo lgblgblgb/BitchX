@@ -621,10 +621,9 @@ static void server_lost(int s)
 	{
 		set_server_reconnect(s, 1);
 
-		if (server_list[s].from_server != -1)
+		if ((server_list[s].from_server != -1) && (server_list[s].from_server != s))
 		{
-			if ((server_list[server_list[s].from_server].read != -1) &&
-					(server_list[s].from_server != s))
+			if (is_server_open(server_list[s].from_server))
 			{
 				/* Set the windows back to the old server */
 				say("Connection to server %s resumed...", server_list[server_list[s].from_server].name);
@@ -632,7 +631,7 @@ static void server_lost(int s)
 				set_window_server(-1, s, 1);
 				set_server_reconnect(s, 0);
 			}
-			else if (server_list[s].from_server != s)
+			else
 			{
 				close_server(server_list[s].from_server, empty_string);
 			}
