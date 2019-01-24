@@ -479,11 +479,11 @@ void	do_idle_server (void)
  * This code either gets called from connect_to_server_by_refnum()
  * or from the main loop once a nonblocking connect has been verified.
  */
-static int finalize_server_connect(int refnum, int c_server, int my_from_server)
+static int finalize_server_connect(int refnum, int c_server)
 {
 	if (serv_open_func)
-		(*serv_open_func)(my_from_server, server_list[my_from_server].local_addr, server_list[my_from_server].port);
-	if ((c_server > -1) && (c_server != my_from_server))
+		(*serv_open_func)(refnum, server_list[refnum].local_addr, server_list[refnum].port);
+	if ((c_server > -1) && (c_server != refnum))
 	{
 		server_list[c_server].reconnecting = 1;
 		server_list[c_server].old_server = -1;
@@ -562,10 +562,10 @@ static int finalize_server_connect(int refnum, int c_server, int my_from_server)
 	}
 #endif
 
-	if (!server_list[my_from_server].d_nickname)
-		malloc_strcpy(&(server_list[my_from_server].d_nickname), nickname);
+	if (!server_list[refnum].d_nickname)
+		malloc_strcpy(&(server_list[refnum].d_nickname), nickname);
 
-	register_server(my_from_server, server_list[my_from_server].d_nickname);
+	register_server(refnum, server_list[refnum].d_nickname);
 	server_list[refnum].last_msg = now;
 	server_list[refnum].eof = 0;
 /*	server_list[refnum].connected = 1; XXX: not registered yet */
@@ -580,14 +580,13 @@ static int finalize_server_connect(int refnum, int c_server, int my_from_server)
 	set_umode(refnum);
 
 	/* This used to be in get_connected() */
-	change_server_channels(c_server, my_from_server);
-	set_window_server(server_list[refnum].server_change_refnum, my_from_server, 0);
-	server_list[my_from_server].reconnects++;
+	change_server_channels(c_server, refnum);
+	set_window_server(server_list[refnum].server_change_refnum, refnum, 0);
+	server_list[refnum].reconnects++;
 	if (c_server > -1)
 	{
-		server_list[my_from_server].orignick = server_list[c_server].orignick;
-		if (server_list[my_from_server].orignick)
-			server_list[c_server].orignick = NULL;
+		server_list[refnum].orignick = server_list[c_server].orignick;
+		server_list[c_server].orignick = NULL;
 	}
 	set_server_req_server(refnum, 0);
 	if (channel)
@@ -681,7 +680,7 @@ void	do_server (fd_set *rd, fd_set *wr)
 #endif
 					int try_once = server_list[i].try_once;
 					server_list[i].connect_wait = 0;
-					if (finalize_server_connect(i, server_list[i].c_server, i) && !try_once)
+					if (finalize_server_connect(i, server_list[i].c_server) && !try_once)
 						server_lost(i);
 #ifdef HAVE_LIBSSL
 				}
@@ -711,7 +710,7 @@ void	do_server (fd_set *rd, fd_set *wr)
 						{
 							int try_once = server_list[i].try_once;
 							server_list[i].connect_wait = 0;
-							if (finalize_server_connect(i, server_list[i].c_server, i) && !try_once)
+							if (finalize_server_connect(i, server_list[i].c_server) && !try_once)
 								server_lost(i);
 						}
 					}
@@ -1496,7 +1495,7 @@ int 	BX_connect_to_server_by_refnum (int refnum, int c_server)
 		if(c_server > -1)
 			server_list[c_server].server_change_pending = 2;
 #else
-		if (finalize_server_connect(refnum, c_server, from_server) != 0)
+		if (finalize_server_connect(refnum, c_server) != 0)
 			return -1;
 #endif
 	}
