@@ -307,21 +307,6 @@ int serv = -1;
 	return 0;
 }
 
-int find_old_server(int old_server)
-{
-	int i;
-
-	if(old_server > -1 && old_server < number_of_servers)
-	{
-		for (i = 0; i < number_of_servers; i++)
-		{
-			if(server_list[i].old_server == old_server)
-				return i;
-		}
-	}
-	return -1;
-}
-
 static int advance_server(int server)
 {
 	/* We were waiting for this server to
@@ -1548,6 +1533,21 @@ int next_server(int server)
 	} while (!next_server_ok(server, snetwork) && server != original);
 
 	return server;
+}
+
+static int find_old_server(int old_server)
+{
+	int i;
+
+	if (old_server > -1 && old_server < number_of_servers)
+	{
+		for (i = 0; i < number_of_servers; i++)
+		{
+			if (server_list[i].old_server == old_server)
+				return i;
+		}
+	}
+	return -1;
 }
 
 /*
