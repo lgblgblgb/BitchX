@@ -3806,13 +3806,12 @@ char *newusername = NULL;
 		fprintf(outfile,"%s", newusername);
 #endif
 		fclose(outfile);
+		new_free(&p);
+		new_free(&q);
 #endif
 		strlcpy(username, newusername, sizeof username);
 		if (subargs && *subargs)
                         strlcpy(realname, subargs, sizeof realname);
-#ifdef IDENT_FAKE
-		new_free(&p); new_free(&q);
-#endif
 		reconnect_cmd(NULL, newusername, NULL, NULL);
 	}
 	else
