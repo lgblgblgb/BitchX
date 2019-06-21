@@ -724,18 +724,25 @@ void numbered_command(char *from, int comm, char **ArgList)
 	}
 	case 301:		/* #define RPL_AWAY             301 */
 	{
-		PasteArgs(ArgList, 1);
+		const char *away_msg = "";
+
+		if (ArgList[1])
+		{
+			PasteArgs(ArgList, 1);
+			away_msg = ArgList[1];
+		}
+
 		if (get_int_var(SHOW_AWAY_ONCE_VAR))
 		{
-			if (!last_away_msg || strcmp(last_away_nick, from) || strcmp(last_away_msg, ArgList[1]))
+			if (!last_away_msg || strcmp(last_away_nick, from) || strcmp(last_away_msg, away_msg))
 			{
 				malloc_strcpy(&last_away_nick, from);
-				malloc_strcpy(&last_away_msg, ArgList[1]);
+				malloc_strcpy(&last_away_msg, away_msg);
 			}
 			else break;
 		}
-		if (do_hook(current_numeric, "%s %s", ArgList[0], ArgList[1]))
-			put_it("%s", convert_output_format(fget_string_var(FORMAT_WHOIS_AWAY_FSET),"%s %s", ArgList[0], ArgList[1]));
+		if (do_hook(current_numeric, "%s %s", ArgList[0], away_msg))
+			put_it("%s", convert_output_format(fget_string_var(FORMAT_WHOIS_AWAY_FSET),"%s %s", ArgList[0], away_msg));
 		break;
 	}
 	case 302:		/* #define RPL_USERHOST         302 */

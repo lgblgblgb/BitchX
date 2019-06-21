@@ -1,5 +1,7 @@
 [Changes 1.2.2]
 
+* Handle 301 numeric with missing message argument. Reported by trn. (caf)
+
 * Display "Servers exhausted. Restarting." message at the right time. (caf)
 
 * Fix bug where the initial server connection was only retried one less than
