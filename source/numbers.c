@@ -732,17 +732,14 @@ void numbered_command(char *from, int comm, char **ArgList)
 			away_msg = ArgList[1];
 		}
 
-		if (get_int_var(SHOW_AWAY_ONCE_VAR))
+		if (!get_int_var(SHOW_AWAY_ONCE_VAR) || !last_away_msg || strcmp(last_away_nick, ArgList[0]) || strcmp(last_away_msg, away_msg))
 		{
-			if (!last_away_msg || strcmp(last_away_nick, from) || strcmp(last_away_msg, away_msg))
-			{
-				malloc_strcpy(&last_away_nick, from);
-				malloc_strcpy(&last_away_msg, away_msg);
-			}
-			else break;
+			malloc_strcpy(&last_away_nick, ArgList[0]);
+			malloc_strcpy(&last_away_msg, away_msg);
+
+			if (do_hook(current_numeric, "%s %s", ArgList[0], away_msg))
+				put_it("%s", convert_output_format(fget_string_var(FORMAT_WHOIS_AWAY_FSET),"%s %s", ArgList[0], away_msg));
 		}
-		if (do_hook(current_numeric, "%s %s", ArgList[0], away_msg))
-			put_it("%s", convert_output_format(fget_string_var(FORMAT_WHOIS_AWAY_FSET),"%s %s", ArgList[0], away_msg));
 		break;
 	}
 	case 302:		/* #define RPL_USERHOST         302 */

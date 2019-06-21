@@ -1,5 +1,7 @@
 [Changes 1.2.2]
 
+* Fix SHOW_AWAY_ONCE so it shows away message if the nick has changed. (caf)
+
 * Handle 301 numeric with missing message argument. Reported by trn. (caf)
 
 * Display "Servers exhausted. Restarting." message at the right time. (caf)
