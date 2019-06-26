@@ -44,7 +44,7 @@ extern	int	doing_privmsg;
 #define WAIT_BANS 1
 #define WAIT_MODE 2
 
-#define MAXPARA 15
+#define MAXPARA 20	/* RFC1459 says 15+1, but RusNet uses more */
 
 
 #endif /* PARSE_H_ */

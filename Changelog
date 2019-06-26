@@ -1,5 +1,7 @@
 [Changes 1.2.2]
 
+* Bump MAXPARA (maximum protocol message arguments) to 20 as per EPIC5. (caf)
+
 * Correctly handle a last argument prefixed with : for any protocol message,
   for compatibility with inspircd.  Reported by trn. (caf)
 
