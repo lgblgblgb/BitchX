@@ -366,7 +366,9 @@ int BX_BreakArgs(char *Input, char **Sender, char **OutPut, int ig_sender)
 
 		if (*Input == ':')
 		{
-			OutPut[ArgCount++] = ++Input;
+			/* Squash the : so if PasteArgs() is called it doesn't reappear */
+			ov_strcpy(Input, Input + 1);
+			OutPut[ArgCount++] = Input;
 			break;
 		}
 
