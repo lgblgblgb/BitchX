@@ -349,19 +349,16 @@ int BX_dgets (char *str, int des, int buffer, int buffersize, void *ssl_fd)
 	/*
 	 * Slurp up the data that is available into 'str'. 
 	 */
-	while (ioe->read_pos < ioe->write_pos)
+	while (ioe->read_pos < ioe->write_pos && cnt < (buffersize - 1))
 	{
-		if (((str[cnt] = ioe->buffer[ioe->read_pos++])) == '\n')
-			break;
-		cnt++;
-		if (cnt >= buffersize-1)
+		if ((str[cnt++] = ioe->buffer[ioe->read_pos++]) == '\n')
 			break;
 	}
 
 	/*
 	 * Terminate it
 	 */
-	str[cnt + 1] = 0;
+	str[cnt] = 0;
 
 	/*
 	 * If we end in a newline, then all is well.
@@ -369,8 +366,8 @@ int BX_dgets (char *str, int des, int buffer, int buffersize, void *ssl_fd)
 	 * The caller then would need to do a strlen() to get
  	 * the amount of data.
 	 */
-	if (str[cnt] == '\n')
-		return cnt;
+	if (cnt > 0 && str[cnt - 1] == '\n')
+		return cnt - 1;
 	else
 		return 0;
 }
