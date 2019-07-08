@@ -285,15 +285,13 @@ int annoy_kicks(int list_type, char *to, char *from, char *ptr, NickList *nick)
  * begins with MULTI_CHANNEL and has no '*', or STRING_CHANNEL, then its a
  * channel 
  */
-int BX_is_channel(char *to)
+int BX_is_channel(const char *to)
 {
-	if (!to || !*to)
-		return 0;
-
-	return ( (to) && ((*to == MULTI_CHANNEL)
-					  || (*to == STRING_CHANNEL)
-					  || (*to == ID_CHANNEL)
-					  || (*to == LOCAL_CHANNEL)));
+	return to &&
+		(*to == MULTI_CHANNEL ||
+		*to == STRING_CHANNEL ||
+		*to == ID_CHANNEL ||
+		*to == LOCAL_CHANNEL);
 }
 
 

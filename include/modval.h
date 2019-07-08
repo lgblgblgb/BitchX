@@ -404,7 +404,7 @@ extern Function_ptr *global;
 #define add_completion_type (*(int (*)(char *, int , enum completion ))global[ADD_COMPLETION_TYPE])
 
 /* names.c */
-#define is_channel (*(int (*)(char *))global[IS_CHANNEL])
+#define is_channel (*(int (*)(const char *))global[IS_CHANNEL])
 #define make_channel (*(char *(*)(char *))global[MAKE_CHANNEL])
 #define is_chanop (*(int (*)(char *, char *))global[IS_CHANOP])
 #define is_halfop (*(int (*)(char *, char *))global[IS_HALFOP])

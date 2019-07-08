@@ -321,7 +321,7 @@ extern	int	cpu_saver;
 extern	struct	sockaddr_foobar	local_ip_address;
 
 
-int	BX_is_channel (char *);
+int	BX_is_channel (const char *);
 void	BX_irc_exit (int, char *, char *, ...);
 void	BX_beep_em (int);
 void	got_initial_version (char *);
