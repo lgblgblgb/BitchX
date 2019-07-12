@@ -567,50 +567,46 @@ int var_index, cnt = 0;
 
 BUILT_IN_COMMAND(cset_variable)
 {
-	char    *var, *channel = NULL;
-	int     no_args = 1, cnt, var_index, hook = 1;
+	char *var, *channel = NULL;
+	int cnt, var_index;
 
-	if (from_server != -1 && current_window->server != -1)
-	{
-		if (args && *args && (is_channel(args) || *args == '*'))
-			channel = next_arg(args, &args);
-		else
-			channel = get_current_channel_by_refnum(0);
-	}
-	else if (args && *args && (is_channel(args) || *args == '*'))
+	if (args && *args && (is_channel(args) || *args == '*'))
 		channel = next_arg(args, &args);
-		
+	else
+		channel = get_current_channel_by_refnum(0);
+
 	if (!channel)
 		return;
 
-	if ((var = next_arg(args, &args)) != NULL) 
+	var = next_arg(args, &args);
+
+	if (!var)
 	{
-		if (*var == '-') 
-		{
-			var++;
-			args = NULL;
-		}
-		var_index = find_cset_variable(cset_array, var, &cnt);
-		
-		if (hook)
-		{
-			switch (cnt) 
-			{
-				case 0:
-					say("No such variable \"%s\"", var);
-					return;
-				case 1:
-					cset_variable_case1(channel, var_index, args);
-					return;
-				default:
-					say("%s is ambiguous", var);
-					cset_variable_casedef(channel, cnt, var_index, args);
-					return;
-			}
-		}
-	}
-	if (no_args)
 		cset_variable_noargs(channel);
+		return;
+	}
+
+	if (*var == '-')
+	{
+		var++;
+		args = NULL;
+	}
+
+	var_index = find_cset_variable(cset_array, var, &cnt);
+
+	switch (cnt)
+	{
+		case 0:
+			say("No such variable \"%s\"", var);
+			break;
+		case 1:
+			cset_variable_case1(channel, var_index, args);
+			break;
+		default:
+			say("%s is ambiguous", var);
+			cset_variable_casedef(channel, cnt, var_index, args);
+			break;
+	}
 }
 
 CSetList *create_csets_for_channel(char *channel)
