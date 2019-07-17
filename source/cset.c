@@ -399,44 +399,33 @@ static inline void cset_variable_case1(char *channel, int var_index, char *args)
 static inline void cset_variable_casedef(char *channel, int cnt, int var_index, char *args)
 {
 	ChannelList *chan = NULL; 
-	int tmp, tmp2;
+	CSetList *c = NULL;
+	int i;
 	int count = 0;
 	
 	if (current_window->server != -1)
 	{
 		for (chan = get_server_channels(current_window->server); chan; chan = chan->next) 
 		{
-			tmp = var_index;
-			tmp2 = cnt;
 			if (wild_match(channel, chan->channel)) 
 			{
-				for (tmp2 += tmp; tmp < tmp2; tmp++)
-					set_cset_var_value(chan->csets, tmp, empty_string);
+				for (i = var_index; i < var_index + cnt; i++)
+					set_cset_var_value(chan->csets, i, empty_string);
 				count++;
 			}
 		}
-	}
-/*	if (!count) */
-	{
-		CSetList *c = NULL;
-		if (!count)
-			check_cset_queue(channel, 1);
-		for (c = cset_queue; c; c = c->next)
-		{
-			tmp = var_index;
-			tmp2 = cnt;
-			if (!my_stricmp(channel, c->channel) || wild_match(channel, c->channel))
-			{
-				for (tmp2 +=tmp; tmp < tmp2; tmp++)
-					set_cset_var_value(c, tmp, empty_string);
-				count++;
-			}
-		}
-		if (!count)
-			say("CSET_VARIABLE: No match in cset queue for %s", channel);
-		return;
 	}
 
+	if (!count)
+		check_cset_queue(channel, 1);
+	for (c = cset_queue; c; c = c->next)
+	{
+		if (!my_stricmp(channel, c->channel) || wild_match(channel, c->channel))
+		{
+			for (i = var_index; i < var_index + cnt; i++)
+				set_cset_var_value(c, i, empty_string);
+		}
+	}
 }
 
 static inline void cset_variable_noargs(char *channel)
