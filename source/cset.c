@@ -355,48 +355,7 @@ CSetList *check_cset_queue(char *channel, int add)
 	return NULL;
 }
 
-static inline void cset_variable_case1(char *channel, int var_index, char *args)
-{
-	ChannelList *chan = NULL;
-	int tmp = 0;
-	int count = 0;
-	/* 
-	 * implement a queue for channels that don't exist... later...
-	 * go home if user doesn't have any channels.
-	 */
-	if (current_window->server != -1)
-	{
-		for (chan = get_server_channels(current_window->server); chan; chan = chan->next) 
-		{
-			tmp = var_index;
-			if (wild_match(channel, chan->channel))
-			{
-				set_cset_var_value(chan->csets, tmp, args);
-				count++;
-			}
-		}
-	}
-	/* no channel match. lets check the queue */
-/*	if (!count)*/
-	{
-		CSetList *c = NULL;
-		if (!count)
-			check_cset_queue(channel, 1);
-		for (c = cset_queue; c; c = c->next)
-		{
-			tmp = var_index;
-			if (!my_stricmp(channel, c->channel) || wild_match(channel, c->channel))
-			{
-				set_cset_var_value(c, tmp, args);
-				count++;
-			}
-		}
-		if (!count)
-			say("CSET_VARIABLE: No match in cset queue for %s", channel);
-	}
-}
-
-static inline void cset_variable_casedef(char *channel, int cnt, int var_index, char *args)
+static inline void cset_variable_range(char *channel, int cnt, int var_index, char *args)
 {
 	ChannelList *chan = NULL; 
 	CSetList *c = NULL;
@@ -410,7 +369,7 @@ static inline void cset_variable_casedef(char *channel, int cnt, int var_index, 
 			if (wild_match(channel, chan->channel)) 
 			{
 				for (i = var_index; i < var_index + cnt; i++)
-					set_cset_var_value(chan->csets, i, empty_string);
+					set_cset_var_value(chan->csets, i, args);
 				count++;
 			}
 		}
@@ -423,47 +382,20 @@ static inline void cset_variable_casedef(char *channel, int cnt, int var_index, 
 		if (!my_stricmp(channel, c->channel) || wild_match(channel, c->channel))
 		{
 			for (i = var_index; i < var_index + cnt; i++)
-				set_cset_var_value(c, i, empty_string);
-		}
-	}
-}
-
-static inline void cset_variable_noargs(char *channel)
-{
-	int var_index = 0;
-	ChannelList *chan = NULL; 
-	int count = 0;
-
-	if (current_window->server != -1)
-	{
-		for (chan = get_server_channels(current_window->server); chan; chan = chan->next) 
-		{
-			if (wild_match(channel, chan->channel)) 
-			{	
-				for (var_index = 0; var_index < NUMBER_OF_CSETS; var_index++)
-					set_cset_var_value(chan->csets, var_index, empty_string);
+			{
+				set_cset_var_value(c, i, args);
 				count++;
 			}
 		}
 	}
-/*	if (!count) */
-	{
-		CSetList *c = NULL;
-		if (!count)
-			check_cset_queue(channel, 1);
-		for (c = cset_queue; c; c = c->next)
-		{
-			if (!wild_match(channel, c->channel))
-				continue;
-			for (var_index = 0; var_index < NUMBER_OF_CSETS; var_index++)
-				set_cset_var_value(c, var_index, empty_string);
-			count++;
-		}
-		if (!count)
-			say("CSET_VARIABLE: No match in cset queue for %s", channel ? channel : empty_string);
-		return;
-	}
+	if (!count)
+		say("CSET_VARIABLE: No match in cset queue for %s", channel);
+}
 
+static inline void cset_variable_noargs(char *channel)
+{
+	/* Show the current value of every cset */
+	cset_variable_range(channel, NUMBER_OF_CSETS, 0, "");
 }
 
 char *set_cset(char *var, ChannelList *chan, char *value)
@@ -583,19 +515,19 @@ BUILT_IN_COMMAND(cset_variable)
 
 	var_index = find_cset_variable(cset_array, var, &cnt);
 
-	switch (cnt)
+	if (cnt == 0)
 	{
-		case 0:
-			say("No such variable \"%s\"", var);
-			break;
-		case 1:
-			cset_variable_case1(channel, var_index, args);
-			break;
-		default:
-			say("%s is ambiguous", var);
-			cset_variable_casedef(channel, cnt, var_index, args);
-			break;
+		say("No such variable \"%s\"", var);
+		return;
 	}
+
+	if (cnt > 1)
+	{
+		say("Variable \"%s\" is ambiguous", var);
+		args = "";
+	}
+
+	cset_variable_range(channel, cnt, var_index, args);
 }
 
 CSetList *create_csets_for_channel(char *channel)
