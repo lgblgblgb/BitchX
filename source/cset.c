@@ -325,34 +325,15 @@ static void set_cset_var_value(CSetList *tmp, int var_index, char *value)
 
 CSetList *check_cset_queue(char *channel, int add)
 {
-	CSetList *c = NULL;
-	int found = 0;
-	if (!strchr(channel, '*') && !(c = (CSetList *)find_in_list((List **)&cset_queue, channel, 0)))
+	CSetList *c = (CSetList *)find_in_list((List **)&cset_queue, channel, 0);
+
+	if (!c && add)
 	{
-		if (!add) 
-		{
-			for (c = cset_queue; c; c = c->next)
-				if (!my_stricmp(c->channel, channel) || wild_match(c->channel, channel))
-					return c;
-			return NULL;
-		}
 		c = create_csets_for_channel(channel);
 		add_to_list((List **)&cset_queue, (List *)c);
-		found++;
 	}
-	if (c)
-		return c;
-	if (add && !found)
-	{
-		for (c = cset_queue; c; c = c->next)
-			if (!my_stricmp(c->channel, channel))
-				return c;
-		c = create_csets_for_channel(channel);
-		c->next = cset_queue;
-		cset_queue = c;
-		return c;
-	}
-	return NULL;
+
+	return c;
 }
 
 static inline void cset_variable_range(char *channel, int cnt, int var_index, char *args)
@@ -541,14 +522,9 @@ CSetList *create_csets_for_channel(char *channel)
 			ircpanic("Variable [%d] (%s) is out of order.", i, cset_array[i].name);
 #endif
 
-	if (check_cset_queue(channel, 0))
-	{
-		if ((tmp = (CSetList *)find_in_list((List **)&cset_queue, channel, 0)))
-			return tmp;
-		for (tmp = cset_queue; tmp; tmp = tmp->next)
-			if (!my_stricmp(tmp->channel, channel) || wild_match(tmp->channel, channel))
-				return tmp;
-	}		
+	if ((tmp = (CSetList *)remove_from_list((List **)&cset_queue, channel)))
+		return tmp;
+
 	tmp = (CSetList *) new_malloc(sizeof(CSetList));
 	/* use default settings. */
 	tmp->set_aop = get_int_var(AOP_VAR);

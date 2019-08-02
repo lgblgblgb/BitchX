@@ -1,5 +1,8 @@
 [Changes 1.2.2]
 
+* Remove queueing of wildcard CSETs and fix use-after-free with queued
+  CSETs. (caf)
+
 * Bump MAXPARA (maximum protocol message arguments) to 20 as per EPIC5. (caf)
 
 * Correctly handle a last argument prefixed with : for any protocol message,
