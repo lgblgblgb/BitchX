@@ -482,62 +482,42 @@ int count = 0;
 
 BUILT_IN_COMMAND(channel_stats)
 {
-ChannelList *new = NULL;
-char *channel = NULL;
-WhowasChanList *new1 = NULL;
-int numircops = 0;
-int usershere = 0;
-int usersaway = 0;
-int chanops = 0;
-int chanunop = 0;
-char *ircops = NULL;
-int server = -1;
-int max_hops = 0;
-
-NickList *l; 
-unsigned long	nick_mem = 0, 
-		ban_mem = 0; 
-BanList *b;
-
-
-	
+	ChannelList *new = NULL;
+	char *channel = NULL;
+	int numircops = 0;
+	int usershere = 0;
+	int usersaway = 0;
+	int chanops = 0;
+	int chanunop = 0;
+	char *ircops = NULL;
+	int server = -1;
+	int max_hops = 0;
+	NickList *l; 
+	unsigned long nick_mem = 0;
+	unsigned long ban_mem = 0; 
+	BanList *b;
 
 	if (args && *args)
 	{
 		channel = next_arg(args, &args);
-		if (my_strnicmp(channel, "-ALL", strlen(channel)))
+
+		if (!my_strnicmp(channel, "-ALL", strlen(channel)))
 		{
-			if (!(channel = make_channel(channel)))
-				return;
-			if (!(new = prepare_command(&server, channel, PC_SILENT)))
-				if ((channel && !(new1 = check_whowas_chan_buffer(channel, -1, 0))))
-					return;
-		}
-		else
-		{
-	
+			/* Accumulate stats from all joined channels on server */
 			int stats_ops= 0, stats_dops = 0, stats_bans = 0, stats_unbans = 0;
 			int stats_topics = 0, stats_kicks = 0, stats_pubs = 0, stats_parts = 0;
 			int stats_signoffs = 0, stats_joins = 0;
 			int total_nicks = 0, max_nicks = 0, total_bans = 0, max_bans = 0;
 			int stats_sops = 0, stats_sdops = 0, stats_sbans = 0, stats_sunbans = 0;	
-		
-			NickList *l; 
-			BanList *b;
 			unsigned long chan_mem = 0;
-			channel =  NULL;
+			channel = NULL;
 				
 			if (from_server != -1)
 			{
 				for (new = get_server_channels(from_server); new; new = new->next)
-				{		
-					if (!channel)
-						malloc_strcpy(&channel, new->channel);
-					else
-					{
-						malloc_strcat(&channel, ",");
-						malloc_strcat(&channel, new->channel);
-					}
+				{
+					m_s3cat(&channel, ",", new->channel);
+
 					for (l = next_nicklist(new, NULL); l; l = next_nicklist(new, l))
 					{
 						if (nick_isaway(l))
@@ -583,106 +563,112 @@ BanList *b;
 					stats_sunbans += new->stats_sunbans;						
 				}
 			}
-			if (!ircops)
-				malloc_strcat(&ircops, empty_string);
-if (do_hook(CHANNEL_STATS_LIST, "%s %s %s %lu %lu %lu %lu %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
-	channel, empty_string, empty_string,
-	nick_mem+chan_mem+ban_mem, nick_mem, 
-	(unsigned long)sizeof(ChannelList),ban_mem, 
-	stats_ops, stats_dops, stats_bans, stats_unbans,
-	stats_topics, stats_kicks, stats_pubs, stats_parts,
-	stats_signoffs, stats_joins, total_bans, max_bans,
-	stats_sops, stats_sdops,stats_sbans, stats_sunbans,
-	usershere, usersaway, chanops, chanunop,total_nicks,max_nicks,
-	numircops, max_hops, ircops))
-{
-put_it("%s", convert_output_format("$G %CInformation for channels %K: %W$0", "%s", channel)); 
-put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+chan_mem+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
-put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_ops, stats_dops, stats_bans, stats_unbans));
-put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_topics, stats_kicks, stats_pubs, stats_parts));
-put_it("%s", convert_output_format("Signoffs   %C[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_signoffs, stats_joins, total_bans, max_bans));
-put_it("%s", convert_output_format("ServOps    %K[%W$[-5]0%K]%w  ServDeop   %K[%W$[-5]1%K]%w  ServBans   %K[%W$[-5]2%K]%w  ServUB     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_sops, stats_sdops,stats_sbans, stats_sunbans));
-put_it("%s", convert_output_format("Users Here %K[%W$[-5]0%K]%w  Users Away %K[%W$[-5]1%K]%w  Opped      %K[%W$[-5]2%K]%w  Unopped    %K[%W$[-5]3%K]%w", "%u %u %u %u", usershere, usersaway, chanops, chanunop));
-put_it("%s", convert_output_format("TotalNicks %K[%W$[-5]0%K]%w  MaxNicks   %K[%W$[-5]1%K]%w  ServerHops %K[%W$[-5]2%K]%w", "%d %d %d", total_nicks,max_nicks, max_hops));
-put_it("%s", convert_output_format("IRCops     %K[%W$[3]0%K]%w$1-", "%d %s", numircops, ircops));
-}
+
+			if (do_hook(CHANNEL_STATS_LIST,
+						"%s %s %s %lu %lu %lu %lu %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
+						channel, empty_string, empty_string,
+						nick_mem + chan_mem + ban_mem, nick_mem, 
+						(unsigned long)sizeof(ChannelList), ban_mem, 
+						stats_ops, stats_dops, stats_bans, stats_unbans,
+						stats_topics, stats_kicks, stats_pubs, stats_parts,
+						stats_signoffs, stats_joins, total_bans, max_bans,
+						stats_sops, stats_sdops, stats_sbans, stats_sunbans,
+						usershere, usersaway, chanops, chanunop, total_nicks, max_nicks,
+						numircops, max_hops, ircops ? ircops : ""))
+			{
+				put_it("%s", convert_output_format("$G %CInformation for channels %K: %W$0", "%s", channel)); 
+				put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+chan_mem+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
+				put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_ops, stats_dops, stats_bans, stats_unbans));
+				put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_topics, stats_kicks, stats_pubs, stats_parts));
+				put_it("%s", convert_output_format("Signoffs   %C[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_signoffs, stats_joins, total_bans, max_bans));
+				put_it("%s", convert_output_format("ServOps    %K[%W$[-5]0%K]%w  ServDeop   %K[%W$[-5]1%K]%w  ServBans   %K[%W$[-5]2%K]%w  ServUB     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_sops, stats_sdops,stats_sbans, stats_sunbans));
+				put_it("%s", convert_output_format("Users Here %K[%W$[-5]0%K]%w  Users Away %K[%W$[-5]1%K]%w  Opped      %K[%W$[-5]2%K]%w  Unopped    %K[%W$[-5]3%K]%w", "%u %u %u %u", usershere, usersaway, chanops, chanunop));
+				put_it("%s", convert_output_format("TotalNicks %K[%W$[-5]0%K]%w  MaxNicks   %K[%W$[-5]1%K]%w  ServerHops %K[%W$[-5]2%K]%w", "%d %d %d", total_nicks,max_nicks, max_hops));
+				put_it("%s", convert_output_format("IRCops     %K[%W$[3]0%K]%w$1-", "%d %s", numircops, ircops ? ircops : ""));
+			}
 			new_free(&ircops);
 			new_free(&channel);
 			return;		
 		}
 	}
-	else 
-	{
-		if (!(new = prepare_command(&server, channel, PC_SILENT)))
-			if ((channel && !(new1 = check_whowas_chan_buffer(channel, -1, 0))))
-				return;
-	}
 
-	if (!new && new1)
-		new = new1->channellist;
+	channel = make_channel(channel);
+	new = prepare_command(&server, channel, PC_SILENT);
+
 	if (!new)
 	{
-		bitchsay("Try joining a channel first");
-		return;
-	}		
-	if (new)
-	{
-		for (l = next_nicklist(new, NULL); l; l = next_nicklist(new, l))
+		if (channel)
 		{
-			nick_mem += sizeof(NickList);
-			if (nick_isaway(l))
-				usersaway++;
-			else
-				usershere++;
-			if (nick_isircop(l))
+			WhowasChanList *whowas_chan = check_whowas_chan_buffer(channel, -1, 0);
+
+			if (!whowas_chan)
 			{
-				numircops++;
-				malloc_strcat(&ircops, " (");
-				malloc_strcat(&ircops, l->nick);
-				malloc_strcat(&ircops, ")");
+				bitchsay("No stats available for %s", channel);
+				return;
 			}
-			if (nick_isop(l))
-				chanops++;
-			else
-				chanunop++;					
-			if (l->serverhops > max_hops)
-				max_hops = l->serverhops;
+
+			new = whowas_chan->channellist;
 		}
-		for (b = new->bans; b; b = b->next)
-			ban_mem += sizeof(BanList);
+		else
+		{
+			bitchsay("Try joining a channel first");
+			return;
+		}
 	}
-	if (!ircops)
-		malloc_strcat(&ircops, empty_string);
-	if (do_hook(CHANNEL_STATS_LIST, "%s %s %s %ld %ld %ld %ld %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
-		new->channel, my_ctime(new->channel_create.tv_sec), convert_time(now-new->join_time.tv_sec),
-		nick_mem+sizeof(ChannelList)+ban_mem, nick_mem, 
-		(unsigned long)sizeof(ChannelList),ban_mem, 
-		new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans,
-		new->stats_topics, new->stats_kicks, new->stats_pubs, new->stats_parts,
-		new->stats_signoffs, new->stats_joins, new->totalbans, new->maxbans,
-		new->stats_sops, new->stats_sdops,new->stats_sbans, new->stats_sunbans,
-		usershere, usersaway, chanops, chanunop,new->totalnicks,new->maxnicks,
-		numircops, max_hops, ircops))
+
+	for (l = next_nicklist(new, NULL); l; l = next_nicklist(new, l))
 	{
-put_it("%s", convert_output_format("$G %CInformation for channel %K: %W$0", "%s", new->channel)); 
-put_it("%s", convert_output_format("$G %CChannel created %K: %W$0 $1 $2 $3%n in memory %W$4-", "%s %s", convert_time(now-new->channel_create.tv_sec), my_ctime(new->join_time.tv_sec)));
+		nick_mem += sizeof(NickList);
+		if (nick_isaway(l))
+			usersaway++;
+		else
+			usershere++;
+		if (nick_isircop(l))
+		{
+			numircops++;
+			malloc_strcat(&ircops, " (");
+			malloc_strcat(&ircops, l->nick);
+			malloc_strcat(&ircops, ")");
+		}
+		if (nick_isop(l))
+			chanops++;
+		else
+			chanunop++;					
+		if (l->serverhops > max_hops)
+			max_hops = l->serverhops;
+	}
+	for (b = new->bans; b; b = b->next)
+		ban_mem += sizeof(BanList);
 
-put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+sizeof(ChannelList)+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
-put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans));
-put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_topics, new->stats_kicks, new->stats_pubs, new->stats_parts));
-put_it("%s", convert_output_format("Signoffs   %K[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_signoffs, new->stats_joins, new->totalbans, new->maxbans));
-put_it("%s", convert_output_format("ServOps    %K[%W$[-5]0%K]%w  ServDeop   %K[%W$[-5]1%K]%w  ServBans   %K[%W$[-5]2%K]%w  ServUB     %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_sops, new->stats_sdops,new->stats_sbans, new->stats_sunbans));
-put_it("%s", convert_output_format("Users Here %K[%W$[-5]0%K]%w  Users Away %K[%W$[-5]1%K]%w  Opped      %K[%W$[-5]2%K]%w  Unopped    %K[%W$[-5]3%K]%w", "%u %u %u %u", usershere, usersaway, chanops, chanunop));
-put_it("%s", convert_output_format("TotalNicks %K[%W$[-5]0%K]%w  MaxNicks   %K[%W$[-5]1%K]%w  ServerHops %K[%W$[-5]2%K]%w", "%d %d %d", new->totalnicks,new->maxnicks, max_hops));
-put_it("%s", convert_output_format("IRCops     %K[%W$[3]0%K]%w$1-", "%d %s", numircops, ircops));
+	if (do_hook(CHANNEL_STATS_LIST,
+				"%s %s %s %ld %ld %ld %ld %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
+				new->channel, my_ctime(new->channel_create.tv_sec), convert_time(now-new->join_time.tv_sec),
+				nick_mem+sizeof(ChannelList)+ban_mem, nick_mem, 
+				(unsigned long)sizeof(ChannelList),ban_mem, 
+				new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans,
+				new->stats_topics, new->stats_kicks, new->stats_pubs, new->stats_parts,
+				new->stats_signoffs, new->stats_joins, new->totalbans, new->maxbans,
+				new->stats_sops, new->stats_sdops,new->stats_sbans, new->stats_sunbans,
+				usershere, usersaway, chanops, chanunop,new->totalnicks,new->maxnicks,
+				numircops, max_hops, ircops ? ircops : ""))
+	{
+		put_it("%s", convert_output_format("$G %CInformation for channel %K: %W$0", "%s", new->channel)); 
+		put_it("%s", convert_output_format("$G %CChannel created %K: %W$0 $1 $2 $3%n in memory %W$4-", "%s %s", convert_time(now-new->channel_create.tv_sec), my_ctime(new->join_time.tv_sec)));
+		put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+sizeof(ChannelList)+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
+		put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans));
+		put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_topics, new->stats_kicks, new->stats_pubs, new->stats_parts));
+		put_it("%s", convert_output_format("Signoffs   %K[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_signoffs, new->stats_joins, new->totalbans, new->maxbans));
+		put_it("%s", convert_output_format("ServOps    %K[%W$[-5]0%K]%w  ServDeop   %K[%W$[-5]1%K]%w  ServBans   %K[%W$[-5]2%K]%w  ServUB     %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_sops, new->stats_sdops,new->stats_sbans, new->stats_sunbans));
+		put_it("%s", convert_output_format("Users Here %K[%W$[-5]0%K]%w  Users Away %K[%W$[-5]1%K]%w  Opped      %K[%W$[-5]2%K]%w  Unopped    %K[%W$[-5]3%K]%w", "%u %u %u %u", usershere, usersaway, chanops, chanunop));
+		put_it("%s", convert_output_format("TotalNicks %K[%W$[-5]0%K]%w  MaxNicks   %K[%W$[-5]1%K]%w  ServerHops %K[%W$[-5]2%K]%w", "%d %d %d", new->totalnicks,new->maxnicks, max_hops));
+		put_it("%s", convert_output_format("IRCops     %K[%W$[3]0%K]%w$1-", "%d %s", numircops, ircops ? ircops : ""));
 
-put_it("%s", convert_output_format("  %CThere is %R$0%C limit and limit checking is %R$1-", "%s %s", new->limit ? ltoa(new->limit): "no", new->tog_limit?"Enabled":"Disabled"));
-put_it("%s", convert_output_format("  %CIdle user check is %K[%R$0-%K]", "%s", new->check_idle?"Enabled":"Disabled"));
-/*put_it("%s", convert_output_format("$G End of channel stats for $0", "%s", new->channel));*/
-			/* wtf is do_scan in the channel struct */
+		put_it("%s", convert_output_format("  %CThere is %R$0%C limit and limit checking is %R$1-", "%s %s", new->limit ? ltoa(new->limit): "no", new->tog_limit?"Enabled":"Disabled"));
+		put_it("%s", convert_output_format("  %CIdle user check is %K[%R$0-%K]", "%s", new->check_idle?"Enabled":"Disabled"));
+		/*put_it("%s", convert_output_format("$G End of channel stats for $0", "%s", new->channel));*/
+		/* wtf is do_scan in the channel struct */
 	}
 	new_free(&ircops);
-
 }
 
 void update_stats(int what, NickList *nick, ChannelList *chan, int splitter)
@@ -4676,14 +4662,15 @@ ChannelList *chan = NULL;
 
 char *BX_make_channel (char *chan)
 {
-static char buffer[IRCD_BUFFER_SIZE+1];
-	*buffer = 0;
+	static char buffer[IRCD_BUFFER_SIZE+1];
+
 	if (!chan)
 		return NULL;
-        if (*chan != '#' && *chan != '&' && *chan != '+' && *chan != '!')
-		snprintf(buffer, IRCD_BUFFER_SIZE-2, "#%s", chan);
+	if (*chan != '#' && *chan != '&' && *chan != '+' && *chan != '!')
+		snprintf(buffer, sizeof buffer, "#%s", chan);
 	else
 		strlcpy(buffer, chan, sizeof buffer);
+
 	return buffer;
 }
 
