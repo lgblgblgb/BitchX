@@ -510,6 +510,7 @@ BUILT_IN_COMMAND(channel_stats)
 			int total_nicks = 0, max_nicks = 0, total_bans = 0, max_bans = 0;
 			int stats_sops = 0, stats_sdops = 0, stats_sbans = 0, stats_sunbans = 0;	
 			unsigned long chan_mem = 0;
+
 			channel = NULL;
 				
 			if (from_server != -1)
@@ -568,7 +569,7 @@ BUILT_IN_COMMAND(channel_stats)
 						"%s %s %s %lu %lu %lu %lu %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
 						channel, empty_string, empty_string,
 						nick_mem + chan_mem + ban_mem, nick_mem, 
-						(unsigned long)sizeof(ChannelList), ban_mem, 
+						chan_mem, ban_mem,
 						stats_ops, stats_dops, stats_bans, stats_unbans,
 						stats_topics, stats_kicks, stats_pubs, stats_parts,
 						stats_signoffs, stats_joins, total_bans, max_bans,
@@ -577,10 +578,10 @@ BUILT_IN_COMMAND(channel_stats)
 						numircops, max_hops, ircops ? ircops : ""))
 			{
 				put_it("%s", convert_output_format("$G %CInformation for channels %K: %W$0", "%s", channel)); 
-				put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+chan_mem+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
+				put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem + chan_mem + ban_mem), (int)nick_mem, (int)chan_mem, (int)ban_mem));
 				put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_ops, stats_dops, stats_bans, stats_unbans));
 				put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_topics, stats_kicks, stats_pubs, stats_parts));
-				put_it("%s", convert_output_format("Signoffs   %C[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_signoffs, stats_joins, total_bans, max_bans));
+				put_it("%s", convert_output_format("Signoffs   %K[%W$[-5]0%K]%w  Joins      %K[%W$[-5]1%K]%w  TotalBans  %K[%W$[-5]2%K]%w  MaxBans    %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_signoffs, stats_joins, total_bans, max_bans));
 				put_it("%s", convert_output_format("ServOps    %K[%W$[-5]0%K]%w  ServDeop   %K[%W$[-5]1%K]%w  ServBans   %K[%W$[-5]2%K]%w  ServUB     %K[%W$[-5]3%K]%w", "%u %u %u %u", stats_sops, stats_sdops,stats_sbans, stats_sunbans));
 				put_it("%s", convert_output_format("Users Here %K[%W$[-5]0%K]%w  Users Away %K[%W$[-5]1%K]%w  Opped      %K[%W$[-5]2%K]%w  Unopped    %K[%W$[-5]3%K]%w", "%u %u %u %u", usershere, usersaway, chanops, chanunop));
 				put_it("%s", convert_output_format("TotalNicks %K[%W$[-5]0%K]%w  MaxNicks   %K[%W$[-5]1%K]%w  ServerHops %K[%W$[-5]2%K]%w", "%d %d %d", total_nicks,max_nicks, max_hops));
@@ -642,7 +643,7 @@ BUILT_IN_COMMAND(channel_stats)
 
 	if (do_hook(CHANNEL_STATS_LIST,
 				"%s %s %s %ld %ld %ld %ld %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %d %s", 
-				new->channel, my_ctime(new->channel_create.tv_sec), convert_time(now-new->join_time.tv_sec),
+				new->channel, my_ctime(new->channel_create.tv_sec), convert_time(time_since(&new->join_time)),
 				nick_mem+sizeof(ChannelList)+ban_mem, nick_mem, 
 				(unsigned long)sizeof(ChannelList),ban_mem, 
 				new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans,
@@ -653,7 +654,7 @@ BUILT_IN_COMMAND(channel_stats)
 				numircops, max_hops, ircops ? ircops : ""))
 	{
 		put_it("%s", convert_output_format("$G %CInformation for channel %K: %W$0", "%s", new->channel)); 
-		put_it("%s", convert_output_format("$G %CChannel created %K: %W$0 $1 $2 $3%n in memory %W$4-", "%s %s", convert_time(now-new->channel_create.tv_sec), my_ctime(new->join_time.tv_sec)));
+		put_it("%s", convert_output_format("$G %CChannel created %K: %W$4-%n in memory %W$0 $1 $2 $3", "%s %s", convert_time(time_since(&new->join_time)), my_ctime(new->channel_create.tv_sec)));
 		put_it("%s", convert_output_format("     MEM usage%K:%w Total%K:%w %c$0 bytes   %K[%cNicks $1 b Chan $2 b Bans $3 b%K]", "%d %d %d %d", (int)(nick_mem+sizeof(ChannelList)+ban_mem), (int)nick_mem, (int)sizeof(ChannelList), (int)ban_mem));
 		put_it("%s", convert_output_format("Ops        %K[%W$[-5]0%K]%w  De-Ops     %K[%W$[-5]1%K]%w  Bans       %K[%W$[-5]2%K]%w  Unbans     %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_ops, new->stats_dops, new->stats_bans, new->stats_unbans));
 		put_it("%s", convert_output_format("Topics     %K[%W$[-5]0%K]%w  Kicks      %K[%W$[-5]1%K]%w  Publics    %K[%W$[-5]2%K]%w  Parts      %K[%W$[-5]3%K]%w", "%u %u %u %u", new->stats_topics, new->stats_kicks, new->stats_pubs, new->stats_parts));
