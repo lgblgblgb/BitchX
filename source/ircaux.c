@@ -274,27 +274,27 @@ char *BX_m_s3cat_s (char **one, const char *maybe, const char *ifthere)
 
 char	*BX_m_3cat(char **one, const char *two, const char *three)
 {
-	int len = 0;
+	size_t one_len = 0, two_len = 0, three_len = 0;
 	char *str;
 
 	if (*one)
-		len = strlen(*one);
+		one_len = strlen(*one);
 	if (two)
-		len += strlen(two);
+		two_len = strlen(two);
 	if (three)
-		len += strlen(three);
-	len += 1;
+		three_len = strlen(three);
 
-	str = (char *)new_malloc(len);
+	str = new_malloc(one_len + two_len + three_len + 1);
 	if (*one)
-		strcpy(str, *one);
+		memcpy(str, *one, one_len);
 	if (two)
-		strcat(str, two);
+		memcpy(str + one_len, two, two_len);
 	if (three)
-		strcat(str, three);
+		memcpy(str + one_len + two_len, three, three_len);
+	str[one_len + two_len + three_len] = 0;
 
 	new_free(one);
-	return ((*one = str));
+	return (*one = str);
 }
 
 /* upper()
