@@ -1,5 +1,8 @@
 [Changes 1.2.2]
 
+* Remove duplicate global definitions to fix compiling with gcc 10.
+  Reported by ixz. (caf)
+
 * Remove queueing of wildcard CSETs and fix use-after-free with queued
   CSETs. (caf)
 
